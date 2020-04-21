@@ -12,8 +12,8 @@ import java.util.*;
 
 class Qnode {
     int vert;
-    int vertkey;
-    int pos;
+    int vertkey;  
+    int pos;                               // Heap modificada para identificar qual vertices corresponde
 
     Qnode(int v, int key,int p) {
   pos=p;
@@ -155,9 +155,9 @@ public class guardas
 {
   static int nretangulos;
   static int posx=0;
-  static int[][] vertices=new int[100][3];
+  static int[][] vertices=new int[1000][3];
 
-  public static int contagem(int i,int x, int y)
+  public static int contagem(int i,int x, int y)     // Contar quantos vertices são iguais a x y
   {
     int contagem=0;
     for(int k=i+1;k<posx;k++)
@@ -170,9 +170,9 @@ public class guardas
     return contagem;
   }
 
-  public static boolean areAllTrue(boolean[] array)
+  public static boolean areAllTrue(boolean[] array)    // Saber se o array map está totalmente "TRUE"
   {
-    for(int i=0;i<10;i++)
+    for(int i=0;i<nretangulos;i++)
     {
       if(array[i]==false)
       {
@@ -182,10 +182,10 @@ public class guardas
     return true;
   }
 
-  public static int contagem_ciclo(boolean[] array)
+  public static int contagem_ciclo(boolean[] array)         // Saber quantos FALSE o array ainda tem
   {
     int contagem=0;
-    for(int i=0;i<10;i++)
+    for(int i=0;i<nretangulos;i++)
     {
       if(array[i]==false)
       {
@@ -195,7 +195,7 @@ public class guardas
     return contagem;
   }
 
-  public static int contagem_vertices(int x, int y, boolean[] map)
+  public static int contagem_vertices(int x, int y, boolean[] map)   // Saber se ao colocar o vigia no vertice x y quantos retangulos ira cobrir que estjeam FALSE
   {
     int contagem=0;
     for(int k=0;k<posx;k++)
@@ -209,7 +209,7 @@ public class guardas
   }
 
 
-  public static void preencher(int x, int y, boolean[] map)
+  public static void preencher(int x, int y, boolean[] map)   // Preencher o array map com true nos casos que o vertice cubra o retangulo
   {
     for(int k=0;k<posx;k++)
     {
@@ -220,9 +220,9 @@ public class guardas
     }
   }
 
-  public static void printar_boolean(boolean[] map)
+  public static void printar_boolean(boolean[] map) // Função simples para printar array booleano
   {
-    for(int i=0;i<10;i++)
+    for(int i=0;i<nretangulos;i++)
     {
       if(map[i]==false)
       {
@@ -239,9 +239,10 @@ public class guardas
     Scanner in = new Scanner(System.in);
     int instancias=in.nextInt();
     int flag=0;
-    for(int i=1;i<=instancias;i++)
+    for(int l=1;l<=instancias;l++)
     {
-      nretangulos=in.nextInt();
+      System.out.println("Retangulo "+l);
+     nretangulos=in.nextInt();
       for(int k=1;k<=nretangulos;k++)
       {
         int retangulo=in.nextInt();
@@ -256,16 +257,14 @@ public class guardas
           posx++;
         }
       }
-    }
 
     int[] contagem=new int[posx+1];
     for(int i=0;i<posx;i++)
     {
         contagem[i]=contagem(i,vertices[i][0],vertices[i][1]);
     }
-
-    Heapmax heap= new Heapmax(contagem,posx);
-    boolean[] map = new boolean[10];
+    Heapmax heap=new Heapmax(contagem,posx);
+    boolean[] map = new boolean[nretangulos];
     Arrays.fill(map,false);
     while(areAllTrue(map)==false)
     {
@@ -288,7 +287,7 @@ public class guardas
         }
       }
 
-      if(contagem_ciclo(map)==2 && flag==0)
+      if(contagem_ciclo(map)==2 || flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
@@ -304,7 +303,7 @@ public class guardas
         }
       }
 
-      if(contagem_ciclo(map)==1 && flag==0)
+      if(contagem_ciclo(map)==1 || flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
@@ -326,10 +325,22 @@ public class guardas
         flag=0;
       }
       heap.extractMax();
-      //printar_boolean(map);
+    //  printar_boolean(map);
 
     }
     System.out.println("Vigias todos colocados");
-  }
+    System.out.println();
 
+      posx=0;
+      for(int i=0;i<1000;i++)
+      {
+        for(int k=0;k<3;k++)
+        {
+          vertices[i][k]=0;
+        }
+      }
+      Arrays.fill(map,false);
+
+    }
+  }
 }
