@@ -12,7 +12,7 @@ import java.util.*;
 
 class Qnode {
     int vert;
-    int vertkey;  
+    int vertkey;
     int pos;                               // Heap modificada para identificar qual vertices corresponde
 
     Qnode(int v, int key,int p) {
@@ -243,6 +243,15 @@ public class guardas
     {
       System.out.println("Retangulo "+l);
      nretangulos=in.nextInt();
+     boolean[] map = new boolean[nretangulos];
+     Arrays.fill(map,true);
+     int nr=in.nextInt();
+     for(int p=0;p<nr;p++)
+     {
+       int x=in.nextInt();
+       map[x-1]=false;
+     }
+     //printar_boolean(map);
       for(int k=1;k<=nretangulos;k++)
       {
         int retangulo=in.nextInt();
@@ -264,14 +273,12 @@ public class guardas
         contagem[i]=contagem(i,vertices[i][0],vertices[i][1]);
     }
     Heapmax heap=new Heapmax(contagem,posx);
-    boolean[] map = new boolean[nretangulos];
-    Arrays.fill(map,false);
     while(areAllTrue(map)==false)
     {
       flag=0;
       int x=vertices[heap.a[1].pos][0];
       int y=vertices[heap.a[1].pos][1];
-      if(contagem_ciclo(map)>=3 && flag==0)
+      if(contagem_ciclo(map)==3 && flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
@@ -325,7 +332,7 @@ public class guardas
         flag=0;
       }
       heap.extractMax();
-    //  printar_boolean(map);
+     //printar_boolean(map);
 
     }
     System.out.println("Vigias todos colocados");
