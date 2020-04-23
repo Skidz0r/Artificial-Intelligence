@@ -278,7 +278,7 @@ public class guardas
       flag=0;
       int x=vertices[heap.a[1].pos][0];
       int y=vertices[heap.a[1].pos][1];
-      if(contagem_ciclo(map)==3 && flag==0)
+      if(contagem_ciclo(map)>=3 && flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
@@ -294,7 +294,7 @@ public class guardas
         }
       }
 
-      if(contagem_ciclo(map)==2 || flag==0)
+      if(contagem_ciclo(map)<=2 && flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
@@ -310,7 +310,7 @@ public class guardas
         }
       }
 
-      if(contagem_ciclo(map)==1 || flag==0)
+      if(contagem_ciclo(map)==1 && flag==0)
       {
         flag=0;
         for(int i=0;i<contagem[heap.a[1].pos];i++)
