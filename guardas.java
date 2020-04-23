@@ -1,168 +1,279 @@
-
-/*-------------------------------------------------------------------*\
-|  Definicao de GRAFOS SEM PESOS                                      |
-|     Assume-se que os vertices sao numerados de 1 a |V|.             |
-|                                                                     |
-|   A.P.Tomas, CC2001 (material para prova pratica), DCC-FCUP, 2017   |
-|   Last modified: 2017.12.18                                         |
-\--------------------------------------------------------------------*/
-
 import java.lang.*;
 import java.util.*;
 
-class Qnode {
-    int vert;
-    int vertkey;
-    int pos;                               // Heap modificada para identificar qual vertices corresponde
+class BSTree<T extends Comparable<? super T>> {
+   public BSTNode<T> root; // raiz da arvore
 
-    Qnode(int v, int key,int p) {
-  pos=p;
-	vert = v;
-	vertkey = key;
+   // Construtor
+   BSTree() {
+      root = null;
+   }
+
+   // Getter e Setter para a raiz
+   public BSTNode<T> getRoot() {return root;}
+   public void setRoot(BSTNode<T> r) {root = r;}
+
+   // Verificar se arvore esta vazia
+   public boolean isEmpty() {
+      return root == null;
+   }
+
+   // Limpa a arvore (torna-a vazia)
+   public void clear() {
+      root = null;
+   }
+
+   // --------------------------------------------------------
+   // Numero de nos da arvore
+   public int numberNodes() {
+      return numberNodes(root);
+   }
+
+   private int numberNodes(BSTNode<T> n) {
+      if (n == null) return 0;
+      return 1 + numberNodes(n.getLeft()) + numberNodes(n.getRight());
+   }
+
+   // --------------------------------------------------------
+   // O elemento value esta contido na arvore?
+   public boolean contains(T value) {
+      return contains(root, value);
+   }
+
+   private boolean contains(BSTNode<T> n, T value) {
+      if (n==null) return false;
+      if (value.compareTo(n.getValue()) < 0) // menor? sub-arvore esquerda
+         return contains(n.getLeft(), value);
+      if (value.compareTo(n.getValue()) >= 0) // maior? sub-arvore direita
+         return contains(n.getRight(), value);
+      return true; // se nao e menor ou maior, e porque e igual
+   }
+
+   // --------------------------------------------------------
+   // Adicionar elemento a uma arvore de pesquisa
+   // Devolve true se conseguiu inserir, false caso contrario
+   public boolean insert(T value, int x, int y, int retangulo) {
+       //if (contains(value)) return false;
+       root = insert(root, value, x, y, retangulo);
+       return true;
     }
-}
-
-class Heapmax {
-    private static int posinvalida = 0;
-    int sizeMax,size;
-    int pos;
-    Qnode[] a;
-    int[] pos_a;
-
-    Heapmax(int vec[], int n) {
-	a = new Qnode[n + 1];
-	pos_a = new int[n + 1];
-	sizeMax = n;
-	size = n;
-	for (int i = 1; i <= n; i++) {
-      pos=i;
-	    a[i] = new Qnode(i,vec[i],pos);
-	    pos_a[i] = i;
-	}
-
-	for (int i = n/2; i >= 1; i--)
-	    heapify(i);
+    private BSTNode<T> insert(BSTNode<T> n, T value, int x, int y,int retangulo) {
+       int vec[] = { retangulo, 0, 0, };
+       if (n==null)
+          return new BSTNode<T>(value, null, null,x,y,vec);
+       else if (value.compareTo(n.getValue()) < 0)
+          n.setLeft(insert(n.getLeft(), value,x,y,retangulo));
+       else if (value.compareTo(n.getValue()) >= 0)
+          n.setRight(insert(n.getRight(), value,x,y,retangulo));
+       return n;
     }
 
-    boolean isEmpty() {
-	if (size == 0) return true;
-	return false;
-    }
+   // --------------------------------------------------------
+   // Remover elemento de uma arvore de pesquisa
+   // Devolve true se conseguiu remover, false caso contrario
+   public boolean remove(T value) {
+      if (!contains(value)) return false;
+      root = remove(root, value);
+      return true;
+   }
 
-    int extractMax() {
-	int vertv = a[1].vert;
-	swap(1,size);
-	pos_a[vertv] = posinvalida;  // assinala vertv como removido
-	size--;
-	heapify(1);
-	return vertv;
-    }
+   // Assume-se que elemento existe (foi verificado antes)
+   private BSTNode<T> remove(BSTNode<T> n, T value) {
+      if (value.compareTo(n.getValue()) < 0)
+         n.setLeft(remove(n.getLeft(), value));
+      else if (value.compareTo(n.getValue()) > 0)
+         n.setRight(remove(n.getRight(), value));
+      else if (n.getLeft() == null) // Nao tem filho esquerdo
+         n = n.getRight();
+      else if (n.getRight() == null) // Nao tem filho direito
+         n = n.getLeft();
+      else { // Dois fihos: ir buscar maximo do lado esquerdo
+         BSTNode<T> max = n.getLeft();
+         while (max.getRight() != null) max = max.getRight();
+         n.setValue(max.getValue()); // Substituir valor removido
+         // Apagar valor que foi para lugar do removido
+         n.setLeft(remove(n.getLeft(), max.getValue()));
+      }
+      return n;
+   }
 
-    void increaseKey(int vertv, int newkey) {
+   // --------------------------------------------------------
+   // Altura da arvore
+   public int depth() {
+      return depth(root);
+   }
 
-	int i = pos_a[vertv];
-	a[i].vertkey = newkey;
+   private int depth(BSTNode<T> n) {
+      if (n == null) return -1;
+      return 1 + Math.max(depth(n.getLeft()), depth(n.getRight()));
+   }
+    //--------------------------------------------------------
 
-	while (i > 1 && compare(i, parent(i)) > 0) {
-	    swap(i, parent(i));
-	    i = parent(i);
-	}
-    }
-
-
-    void insert(int vertv, int key)
+    public T minValue()
     {
-	if (sizeMax == size)
-	    new Error("Heap is full\n");
-
-	size++;
-	a[size].vert = vertv;
-	pos_a[vertv] = size;   // supondo 1 <= vertv <= n
-	increaseKey(vertv,key);   // aumenta a chave e corrige posicao se necessario
+	return minValue(root);
     }
 
-    void write_heap(){
-	System.out.printf("Max size: %d\n",sizeMax);
-	System.out.printf("Current size: %d\n",size);
-	System.out.printf("(Vert,Key,Pos)\n---------\n");
-	for(int i=1; i <= size; i++)
-	    System.out.printf("(%d,%d,%d)\n",a[i].vert,a[i].vertkey,a[i].pos);
-
-	System.out.printf("-------\n(Vert,PosVert)\n---------\n");
-
-	for(int i=1; i <= sizeMax; i++)
-	    if (pos_valida(pos_a[i]))
-		System.out.printf("(%d,%d)\n",i,pos_a[i]);
+    private T minValue(BSTNode<T> n)
+    {
+	if(n.getLeft()!=null)
+	    {
+		return minValue(n.getLeft());
+	    }
+	return n.getValue();
     }
 
-    private int parent(int i){
-	return i/2;
-    }
-    private int left(int i){
-	return 2*i;
-    }
-    private int right(int i){
-	return 2*i+1;
+    public T maxValue()
+    {
+	return maxValue(root);
     }
 
-    private int compare(int i, int j) {
-	if (a[i].vertkey < a[j].vertkey)
-	    return -1;
-	if (a[i].vertkey == a[j].vertkey)
-	    return 0;
-	return 1;
+    private T maxValue(BSTNode<T> n )
+    {
+	if(n.getRight()!=null)
+	    {
+		return maxValue(n.getRight());
+	    }
+	return n.getValue();
     }
 
+   // --------------------------------------------------------
 
-    private void heapify(int i) {
-	int l, r, largest;
+   // Imprimir arvore em PreOrder
+   public void printPreOrder() {
+      System.out.print("PreOrder:");
+      printPreOrder(root);
+      System.out.println();
+   }
 
-	l = left(i);
-	if (l > size) l = i;
+   private void printPreOrder(BSTNode<T> n) {
+      if (n==null) return;
+      System.out.print(" " + n.getValue() );
+      printPreOrder(n.getLeft());
+      printPreOrder(n.getRight());
+   }
 
-	r = right(i);
-	if (r > size) r = i;
+   // --------------------------------------------------------
 
-	largest = i;
-	if (compare(l,largest) > 0)
-	    largest = l;
-	if (compare(r,largest) > 0)
-	    largest = r;
+   // Imprimir arvore em InOrder
+   public void printInOrder() {
+      System.out.print("InOrder:");
+      printInOrder(root);
+      System.out.println();
+   }
 
-	if (i != largest) {
-	    swap(i, largest);
-	    heapify(largest);
-	}
+   private void printInOrder(BSTNode<T> n) {
+      if (n==null) return;
+      printInOrder(n.getLeft());
+      System.out.print(" " + n.getValue());
+      printInOrder(n.getRight());
+   }
 
-    }
+   // --------------------------------------------------------
 
-    private void swap(int i, int j) {
-	Qnode aux;
-	pos_a[a[i].vert] = j;
-	pos_a[a[j].vert] = i;
-	aux = a[i];
-	a[i] = a[j];
-	a[j] = aux;
-    }
+   // Imprimir arvore em PostOrder
+   public void printPostOrder() {
+      System.out.print("PostOrder:");
+      printPostOrder(root);
+      System.out.println();
+   }
 
-    private boolean pos_valida(int i) {
-	return (i >= 1 && i <= size);
-    }
+   private void printPostOrder(BSTNode<T> n) {
+      if (n==null) return;
+      printPostOrder(n.getLeft());
+      printPostOrder(n.getRight());
+      System.out.print(" " + n.getValue());
+   }
+
+   // --------------------------------------------------------
+
+   // Imprimir arvore numa visita em largura (usando TAD Fila)
+   public void printBFS() {
+      System.out.print("BFS:");
+
+      MyQueue<BSTNode<T>> q = new LinkedListQueue<BSTNode<T>>();
+      q.enqueue(root);
+      while (!q.isEmpty()) {
+         BSTNode<T> cur = q.dequeue();
+         if (cur != null) {
+            System.out.print(" " + cur.getValue());
+            q.enqueue(cur.getLeft());
+            q.enqueue(cur.getRight());
+         }
+      }
+      System.out.println();
+   }
+
+   // --------------------------------------------------------
+
+   // Imprimir arvore numa visita em largura (usando TAD Pilha)
+   public void printDFS() {
+      System.out.print("DFS:");
+
+      MyStack<BSTNode<T>> q = new LinkedListStack<BSTNode<T>>();
+      q.push(root);
+      while (!q.isEmpty()) {
+         BSTNode<T> cur = q.pop();
+         if (cur != null) {
+            System.out.print(" " + cur.getValue());
+            q.push(cur.getLeft());
+            q.push(cur.getRight());
+         }
+      }
+      System.out.println();
+   }
+
 }
 
 
-public class guardas
+public class guardas_BFS
 {
-  static int nretangulos;
-  static int posx=0;
-  static int[][] vertices=new int[1000][3];
+  public static void printar_arvore(BSTree<Integer> arvore)
+  {
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.getRoot());
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+          System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+          System.out.println("vec[0]:"+cur.vec[0]+" vec[1]:"+cur.vec[1]+" vec[2]"+cur.vec[2]);
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
+    System.out.println();
+  }
 
-  public static int contagem(int i,int x, int y)     // Contar quantos vertices são iguais a x y
+  public static void inserir(int x, int y, int retangulo, BSTree<Integer> arvore)
+  {
+    int flag=0;
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.root);
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         if(cur.getx()==x && cur.gety()==y)
+         {
+           flag=1;
+           cur.insert_cobertura(retangulo);
+         }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
+    if(flag==0)
+    {
+    arvore.insert(1,x,y,retangulo);
+   }
+
+  }
+
+  public static int contar_false(boolean[] map,int nretangulos)
   {
     int contagem=0;
-    for(int k=i+1;k<posx;k++)
+    for(int i=0;i<nretangulos;i++)
     {
-      if(vertices[k][0]==x && vertices[k][1]==y)
+      if(map[i]==false)
       {
         contagem++;
       }
@@ -170,7 +281,7 @@ public class guardas
     return contagem;
   }
 
-  public static boolean areAllTrue(boolean[] array)    // Saber se o array map está totalmente "TRUE"
+  public static boolean areAllTrue(boolean[] array,int nretangulos)    // Saber se o array map está totalmente "TRUE"
   {
     for(int i=0;i<nretangulos;i++)
     {
@@ -182,45 +293,7 @@ public class guardas
     return true;
   }
 
-  public static int contagem_ciclo(boolean[] array)         // Saber quantos FALSE o array ainda tem
-  {
-    int contagem=0;
-    for(int i=0;i<nretangulos;i++)
-    {
-      if(array[i]==false)
-      {
-        contagem++;
-      }
-    }
-    return contagem;
-  }
-
-  public static int contagem_vertices(int x, int y, boolean[] map)   // Saber se ao colocar o vigia no vertice x y quantos retangulos ira cobrir que estjeam FALSE
-  {
-    int contagem=0;
-    for(int k=0;k<posx;k++)
-    {
-      if(vertices[k][0]==x && vertices[k][1]==y && map[vertices[k][2]-1]==false)
-      {
-        contagem++;
-      }
-    }
-    return contagem;
-  }
-
-
-  public static void preencher(int x, int y, boolean[] map)   // Preencher o array map com true nos casos que o vertice cubra o retangulo
-  {
-    for(int k=0;k<posx;k++)
-    {
-      if(vertices[k][0]==x && vertices[k][1]==y)
-      {
-        map[vertices[k][2]-1]=true;
-      }
-    }
-  }
-
-  public static void printar_boolean(boolean[] map) // Função simples para printar array booleano
+  public static void printar_boolean(boolean[] map,int nretangulos) // Função simples para printar array booleano
   {
     for(int i=0;i<nretangulos;i++)
     {
@@ -236,118 +309,95 @@ public class guardas
 
   public static void main(String[] args)
   {
-    Scanner in = new Scanner(System.in);
-    int instancias=in.nextInt();
-    int flag=0;
-    for(int l=1;l<=instancias;l++)
-    {
-      System.out.println("Retangulo "+l);
-     nretangulos=in.nextInt();
-     boolean[] map = new boolean[nretangulos];
-     Arrays.fill(map,true);
-     int nr=in.nextInt();
-     for(int p=0;p<nr;p++)
-     {
-       int x=in.nextInt();
-       map[x-1]=false;
-     }
-     //printar_boolean(map);
-      for(int k=1;k<=nretangulos;k++)
+     int flag=0;
+     int nretangulos;
+     Scanner in=new Scanner(System.in);
+     BSTree<Integer> arvore = new BSTree<>();
+     int instancias=in.nextInt();
+      for(int l=0;l<instancias;l++)
       {
-        int retangulo=in.nextInt();
-        int nvertices=in.nextInt();
-        for(int h=1;h<=nvertices;h++)
+        nretangulos=in.nextInt();
+         boolean[] map = new boolean[nretangulos];
+        Arrays.fill(map,true);
+        int nr=in.nextInt();
+        for(int k=0;k<nr;k++)
         {
           int x=in.nextInt();
-          int y=in.nextInt();
-          vertices[posx][0]=x;
-          vertices[posx][1]=y;
-          vertices[posx][2]=retangulo;
-          posx++;
+          map[x-1]=false;
         }
-      }
-
-    int[] contagem=new int[posx+1];
-    for(int i=0;i<posx;i++)
-    {
-        contagem[i]=contagem(i,vertices[i][0],vertices[i][1]);
-    }
-    Heapmax heap=new Heapmax(contagem,posx);
-    while(areAllTrue(map)==false)
-    {
-      flag=0;
-      int x=vertices[heap.a[1].pos][0];
-      int y=vertices[heap.a[1].pos][1];
-      if(contagem_ciclo(map)>=3 && flag==0)
-      {
-        flag=0;
-        for(int i=0;i<contagem[heap.a[1].pos];i++)
+        for(int i=1;i<=nretangulos;i++)
         {
-          for(int k=0;k<posx;k++)
+          int retangulo=in.nextInt();
+          int nvertices=in.nextInt();
+          for(int h=1;h<=nvertices;h++)
           {
-            if(vertices[k][0]==x && vertices[k][1]==y && contagem_vertices(x,y,map)==3)
-            {
-              preencher(x,y,map);
-              flag=1;
-            }
-          }
-        }
-      }
-
-      if(contagem_ciclo(map)<=2 && flag==0)
-      {
-        flag=0;
-        for(int i=0;i<contagem[heap.a[1].pos];i++)
-        {
-          for(int k=0;k<posx;k++)
-          {
-            if(vertices[k][0]==x && vertices[k][1]==y && contagem_vertices(x,y,map)==2)
-            {
-              preencher(x,y,map);
-              flag=1;
-            }
-          }
-        }
-      }
-
-      if(contagem_ciclo(map)==1 && flag==0)
-      {
-        flag=0;
-        for(int i=0;i<contagem[heap.a[1].pos];i++)
-        {
-          for(int k=0;k<posx;k++)
-          {
-            if(vertices[k][0]==x && vertices[k][1]==y && map[vertices[k][2]-1]==false)
+            int x=in.nextInt();
+            int y=in.nextInt();
+            if(flag==0)
             {
               flag=1;
-              map[vertices[k][2]-1]=true;
+              arvore.insert(1,x,y,retangulo);
+            }
+            else if(flag==1)
+            {
+              inserir(x,y,retangulo,arvore);
+            }
+        }
+       }
+       while(areAllTrue(map,nretangulos)==false)
+       {
+       MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+       q.enqueue(arvore.getRoot());
+       while (!q.isEmpty()) {
+          BSTNode<Integer> cur = q.dequeue();
+          if (cur != null)
+          {
+            if(contar_false(map,nretangulos)>=3)
+            {
+            if(cur.contagem_cobertura(map)==3)
+            {
+              if(cur.vec[0]>0)
+              map[cur.vec[0]-1]=true;
+              if(cur.vec[1]>0)
+              map[cur.vec[1]-1]=true;
+              if(cur.vec[2]>0)
+              map[cur.vec[2]-1]=true;
+              System.out.println("x: "+cur.getx()+" y:"+cur.gety());
             }
           }
+          if(contar_false(map,nretangulos)<=2 )
+          {
+          if(cur.contagem_cobertura(map)==2)
+          {
+            if(cur.vec[0]>0)
+            map[cur.vec[0]-1]=true;
+            if(cur.vec[1]>0)
+            map[cur.vec[1]-1]=true;
+            if(cur.vec[2]>0)
+            map[cur.vec[2]-1]=true;
+            System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+          }
         }
-      }
-
-      if(flag==1)
-      {
-        System.out.println("x:"+x+" y:"+y);
-        flag=0;
-      }
-      heap.extractMax();
-     //printar_boolean(map);
-
-    }
-    System.out.println("Vigias todos colocados");
-    System.out.println();
-
-      posx=0;
-      for(int i=0;i<1000;i++)
-      {
-        for(int k=0;k<3;k++)
+        if(contar_false(map,nretangulos)==1)
         {
-          vertices[i][k]=0;
+        if(cur.contagem_cobertura(map)==1)
+        {
+          if(cur.vec[0]>0)
+          map[cur.vec[0]-1]=true;
+          if(cur.vec[1]>0)
+          map[cur.vec[1]-1]=true;
+          if(cur.vec[2]>0)
+          map[cur.vec[2]-1]=true;
+          System.out.println("x: "+cur.getx()+" y:"+cur.gety());
         }
       }
-      Arrays.fill(map,false);
-
+             q.enqueue(cur.getLeft());
+             q.enqueue(cur.getRight());
+          }
+        }
+        //printar_boolean(map,nretangulos);
+     }
+           //printar_arvore(arvore);
+   }
     }
   }
-}
