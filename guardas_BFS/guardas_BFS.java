@@ -311,7 +311,7 @@ public class guardas_BFS
 
   public static void preencher(BSTNode<Integer> n,boolean[] map)
   {
-    for(int i=0;i<3;i++)
+    for(int i=0;i<=2;i++)
     {
       if(n.vec[i]==0)
       {
@@ -374,7 +374,7 @@ public class guardas_BFS
                  if(areAllTrue(map,nretangulos)==true)break;
                  BSTNode<Integer> cur = q.dequeue();
                  if (cur != null) {
-                   if(cur.contagem_cobertura(map)==3 || ( cur.contagem_cobertura(map)==2 && contar_false(map,nretangulos)%2 !=0 && contar_false(map,nretangulos)%3 !=0 ))
+                   if(cur.contagem_cobertura(map)==3 || ( cur.contagem_cobertura(map)==2 && contar_false(map,nretangulos)%2==0 && contar_false(map,nretangulos)%3!=0 ) )
                    {
                      preencher(cur,map);
                      System.out.println("x: "+cur.getx()+" y:"+cur.gety());
