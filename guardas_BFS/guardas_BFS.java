@@ -44,7 +44,7 @@ class BSTree<T extends Comparable<? super T>> {
       if (n==null) return false;
       if (value.compareTo(n.getValue()) < 0) // menor? sub-arvore esquerda
          return contains(n.getLeft(), value);
-      if (value.compareTo(n.getValue()) > 0) // maior? sub-arvore direita
+      if (value.compareTo(n.getValue()) >= 0) // maior? sub-arvore direita
          return contains(n.getRight(), value);
       return true; // se nao e menor ou maior, e porque e igual
    }
@@ -52,22 +52,21 @@ class BSTree<T extends Comparable<? super T>> {
    // --------------------------------------------------------
    // Adicionar elemento a uma arvore de pesquisa
    // Devolve true se conseguiu inserir, false caso contrario
-   public boolean insert(T value) {
-      if (contains(value)) return false;
-      root = insert(root, value);
-      return true;
-   }
-
-   private BSTNode<T> insert(BSTNode<T> n, T value) {
-int vec[] = { 0, 0, 0, };
-      if (n==null)
-         return new BSTNode<T>(value, null, null,null,null,vec);
-      else if (value.compareTo(n.getValue()) < 0)
-         n.setLeft(insert(n.getLeft(), value));
-      else if (value.compareTo(n.getValue()) > 0)
-         n.setRight(insert(n.getRight(), value));
-      return n;
-   }
+   public boolean insert(T value, int x, int y, int retangulo) {
+       //if (contains(value)) return false;
+       root = insert(root, value, x, y, retangulo);
+       return true;
+    }
+    private BSTNode<T> insert(BSTNode<T> n, T value, int x, int y,int retangulo) {
+       int vec[] = { retangulo, 0, 0, };
+       if (n==null)
+          return new BSTNode<T>(value, null, null,x,y,vec);
+       else if (value.compareTo(n.getValue()) < 0)
+          n.setLeft(insert(n.getLeft(), value,x,y,retangulo));
+       else if (value.compareTo(n.getValue()) >= 0)
+          n.setRight(insert(n.getRight(), value,x,y,retangulo));
+       return n;
+    }
 
    // --------------------------------------------------------
    // Remover elemento de uma arvore de pesquisa
@@ -229,15 +228,100 @@ int vec[] = { 0, 0, 0, };
 
 public class guardas_BFS
 {
+  public static void printar_arvore(BSTree<Integer> arvore)
+  {
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.getRoot());
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         System.out.println();
+          System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+          System.out.println("vec[0]:"+cur.vec[0]+" vec[1]:"+cur.vec[1]+" vec[2]"+cur.vec[2]+" value:"+cur.getValue());
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
+    System.out.println();
+  }
+
+  public static void inserir(int x, int y, int retangulo, BSTree<Integer> arvore)
+  {
+    int flag=0;
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.root);
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         if(cur.getx()==x && cur.gety()==y)
+         {
+           flag=1;
+           cur.insert_cobertura(retangulo);
+           cur.setValue(cur.contagem_value());
+         }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
+    if(flag==0)
+    {
+    arvore.insert(1,x,y,retangulo);
+   }
+
+  }
+
+  public static int contar_false(boolean[] map,int nretangulos)
+  {
+    int contagem=0;
+    for(int i=0;i<nretangulos;i++)
+    {
+      if(map[i]==false)
+      {
+        contagem++;
+      }
+    }
+    return contagem;
+  }
+
+  public static boolean areAllTrue(boolean[] array,int nretangulos)    // Saber se o array map está totalmente "TRUE"
+  {
+    for(int i=0;i<nretangulos;i++)
+    {
+      if(array[i]==false)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static void printar_boolean(boolean[] map,int nretangulos) // Função simples para printar array booleano
+  {
+    for(int i=0;i<nretangulos;i++)
+    {
+      if(map[i]==false)
+      {
+        System.out.print("False ");
+      }
+      else
+      System.out.print("True ");
+    }
+    System.out.println();
+  }
+
+
+
   public static void main(String[] args)
   {
-    	Scanner in=new Scanner(System.in);
-    	BSTree<Integer> arvore = new BSTree<>();
-      int instancias=in.nextInt();
-      for(int l=0;l<=instancias;l++)
+     int flag=0;
+     int nretangulos;
+     Scanner in=new Scanner(System.in);
+     BSTree<Integer> arvore = new BSTree<>();
+     int instancias=in.nextInt();
+      for(int l=1;l<=instancias;l++)
       {
-        int nretangulos=in.nextInt();
-        boolean[] map = new boolean[nretangulos];
+        nretangulos=in.nextInt();
+         boolean[] map = new boolean[nretangulos];
         Arrays.fill(map,true);
         int nr=in.nextInt();
         for(int k=0;k<nr;k++)
@@ -248,9 +332,95 @@ public class guardas_BFS
         for(int i=1;i<=nretangulos;i++)
         {
           int retangulo=in.nextInt();
-          
+          int nvertices=in.nextInt();
+          for(int h=1;h<=nvertices;h++)
+          {
+            int x=in.nextInt();
+            int y=in.nextInt();
+            if(flag==0)
+            {
+              flag=1;
+              arvore.insert(0,x,y,retangulo);
+            }
+            else if(flag==1)
+            {
+              inserir(x,y,retangulo,arvore);
+            }
+        }
+       }
 
+       System.out.println("Retangulo: "+l);
+       while(areAllTrue(map,nretangulos)==false)
+       {
+            if(contar_false(map,nretangulos)>=3)
+            {
+              MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+              q.enqueue(arvore.root);
+              while (!q.isEmpty()) {
+                 BSTNode<Integer> cur = q.dequeue();
+                 if (cur != null) {
+                   if(cur.contagem_cobertura(map)==3)
+                   {
+                     map[cur.vec[0]-1]=true;
+                     map[cur.vec[1]-1]=true;
+                     map[cur.vec[2]-1]=true;
+                     System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+                   }
+                    q.enqueue(cur.getLeft());
+                    q.enqueue(cur.getRight());
+                 }
+              }
+          }
+
+         if(contar_false(map,nretangulos)>=2)
+          {
+            MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+            q.enqueue(arvore.root);
+            while (!q.isEmpty()) {
+            BSTNode<Integer> cur = q.dequeue();
+            if (cur != null) {
+          if(cur.contagem_cobertura(map)==2 )
+          {
+            if(cur.vec[0]>0)
+            map[cur.vec[0]-1]=true;
+            if(cur.vec[1]>0)
+            map[cur.vec[1]-1]=true;
+            if(cur.vec[2]>0)
+            map[cur.vec[2]-1]=true;
+            System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+          }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
         }
       }
     }
-}
+
+        if(contar_false(map,nretangulos)>=1)
+        {
+          MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+          q.enqueue(arvore.root);
+          while (!q.isEmpty()) {
+          BSTNode<Integer> cur = q.dequeue();
+          if (cur != null) {
+        if(cur.contagem_cobertura(map)==1)
+        {
+          if(cur.vec[0]>0)
+          map[cur.vec[0]-1]=true;
+          if(cur.vec[1]>0)
+          map[cur.vec[1]-1]=true;
+          if(cur.vec[2]>0)
+          map[cur.vec[2]-1]=true;
+          System.out.println("x: "+cur.getx()+" y:"+cur.gety());
+        }
+        q.enqueue(cur.getLeft());
+        q.enqueue(cur.getRight());
+      }
+    }
+  }
+        //printar_boolean(map,nretangulos);
+     }
+           //printar_arvore(arvore);
+                arvore.clear();
+   }
+    }
+  }
