@@ -309,6 +309,20 @@ public class guardas_BFS
     System.out.println();
   }
 
+  public static void preencher(BSTNode<Integer> n,boolean[] map)
+  {
+    for(int i=0;i<3;i++)
+    {
+      if(n.vec[i]==0)
+      {
+        map[n.vec[i]]=true;
+      }
+      else{
+        map[n.vec[i]-1]=true;
+      }
+    }
+  }
+
 
 
   public static void main(String[] args)
@@ -357,13 +371,12 @@ public class guardas_BFS
               MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
               q.enqueue(arvore.root);
               while (!q.isEmpty()) {
+                 if(areAllTrue(map,nretangulos)==true)break;
                  BSTNode<Integer> cur = q.dequeue();
                  if (cur != null) {
-                   if(cur.contagem_cobertura(map)==3)
+                   if(cur.contagem_cobertura(map)==3 || ( cur.contagem_cobertura(map)==2 && contar_false(map,nretangulos)%2 !=0 && contar_false(map,nretangulos)%3 !=0 ))
                    {
-                     map[cur.vec[0]-1]=true;
-                     map[cur.vec[1]-1]=true;
-                     map[cur.vec[2]-1]=true;
+                     preencher(cur,map);
                      System.out.println("x: "+cur.getx()+" y:"+cur.gety());
                    }
                     q.enqueue(cur.getLeft());
@@ -372,21 +385,17 @@ public class guardas_BFS
               }
           }
 
-         if(contar_false(map,nretangulos)>=2)
+         if(contar_false(map,nretangulos)>=1)
           {
             MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
             q.enqueue(arvore.root);
             while (!q.isEmpty()) {
+            if(areAllTrue(map,nretangulos)==true)break;
             BSTNode<Integer> cur = q.dequeue();
             if (cur != null) {
-          if(cur.contagem_cobertura(map)==2 )
+          if((cur.contagem_cobertura(map)==1 && contar_false(map,nretangulos)%2!=0) || cur.contagem_cobertura(map)==2 )
           {
-            if(cur.vec[0]>0)
-            map[cur.vec[0]-1]=true;
-            if(cur.vec[1]>0)
-            map[cur.vec[1]-1]=true;
-            if(cur.vec[2]>0)
-            map[cur.vec[2]-1]=true;
+            preencher(cur,map);
             System.out.println("x: "+cur.getx()+" y:"+cur.gety());
           }
           q.enqueue(cur.getLeft());
@@ -401,15 +410,11 @@ public class guardas_BFS
           q.enqueue(arvore.root);
           while (!q.isEmpty()) {
           BSTNode<Integer> cur = q.dequeue();
+          if(areAllTrue(map,nretangulos)==true)break;
           if (cur != null) {
         if(cur.contagem_cobertura(map)==1)
         {
-          if(cur.vec[0]>0)
-          map[cur.vec[0]-1]=true;
-          if(cur.vec[1]>0)
-          map[cur.vec[1]-1]=true;
-          if(cur.vec[2]>0)
-          map[cur.vec[2]-1]=true;
+          preencher(cur,map);
           System.out.println("x: "+cur.getx()+" y:"+cur.gety());
         }
         q.enqueue(cur.getLeft());
