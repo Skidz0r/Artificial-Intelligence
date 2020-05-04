@@ -1,12 +1,4 @@
-
-/*-------------------------------------------------------------------*\
-|  Definicao de GRAFOS SEM PESOS                                      |
-|     Assume-se que os vertices sao numerados de 1 a |V|.             |
-|                                                                     |
-|   A.P.Tomas, CC2001 (material para prova pratica), DCC-FCUP, 2017   |
-|   Last modified: 2017.12.18                                         |
-\--------------------------------------------------------------------*/
-
+// Greddy search
 import java.lang.*;
 import java.util.*;
 
