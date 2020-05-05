@@ -1,3 +1,5 @@
+
+// BFS SEARCH
 import java.lang.*;
 import java.util.*;
 
@@ -260,20 +262,6 @@ public class guardas_BFS
       }
     }
 
-    public static void printar_solucao(int[] removidos,int size)
-    {
-      System.out.print("Solucao ");
-      for(int i=0;i<size;i++)
-      {
-        if(removidos[i]>=0 && removidos[i+1]>=0)
-        {
-        System.out.print(" x:"+removidos[i]+" y:"+removidos[i+1]);
-      }
-        i++;
-      }
-      System.out.println();
-    }
-
     public static void copy_int(int[] solucao, int[] otima)
     {
       for(int i=0;i<vertices_existentes*2;i++)
@@ -297,19 +285,6 @@ public class guardas_BFS
       }
     }
 
-    public static void printar_bool(boolean[] map)
-    {
-      for(int i=0;i<numero_retangulos;i++)
-      {
-        if(map[i]==true)
-        {
-          System.out.print(" True ");
-        }
-        else System.out.print(" False ");
-      }
-      System.out.println();
-    }
-
     public static int contar(int[] array,int size)
     {
       int contagem=0;
@@ -322,6 +297,22 @@ public class guardas_BFS
         i++;
       }
       return contagem;
+    }
+
+    public static void Print_Otima(int[] otima,int otimizacao,boolean[] boolean_otima)
+    {
+      for(int k=0;k<vertices_existentes*2;k++)
+       {
+         if(otima[k]>=0 && otima[k+1]>=0)
+         {
+         System.out.println("x:"+otima[k]+" y:"+otima[k+1]);
+         }
+         k++;
+       }
+       if(otimizacao==1)
+       {
+         System.out.println("Solucao nao otima");
+       }
     }
 
 
@@ -347,6 +338,7 @@ public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arv
   int f=0;
         while(! (contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true) )
         {
+          MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
           clear_map(map,c_map,nretangulos);
             i=0;
             j=0;
@@ -381,12 +373,15 @@ public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arv
                   h++;h++;
                   array_fill(solucao,vertices_existentes*2,-1);
            }
-              MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+
+           int search_BFS=3;
+           while(search_BFS!=0)
+           {
                 q.enqueue(arvore.root);
                 while (!q.isEmpty()) {
                    BSTNode<Integer> cur = q.dequeue();
                  if (cur != null ) {
-              if( cur.contagem_cobertura(map)==3 && cur.invisivel!=1)
+              if( cur.contagem_cobertura(map)==search_BFS && cur.invisivel!=1)
                      {
                        preencher(cur,map);
                        solucao[i]=cur.getx();solucao[i+1]=cur.gety();
@@ -397,38 +392,8 @@ public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arv
                      q.enqueue(cur.getRight());
                    }
                 }
-              // Verificar na arvore todos os vertices que vigiem 2 retangulos & escolher vertices que vigiem 1 caso o nº de retnagulos que falte preencher n seja n divisivel por 2
-              q.enqueue(arvore.root);
-              while (!q.isEmpty()) {
-              BSTNode<Integer> cur = q.dequeue();
-                 if (cur != null ) {
-              if( cur.contagem_cobertura(map)==2 && cur.invisivel!=1)
-              {
-                  preencher(cur,map);
-                  solucao[i]=cur.getx();solucao[i+1]=cur.gety();
-                  i++;
-                  i++;
-                }
-                q.enqueue(cur.getLeft());
-                q.enqueue(cur.getRight());
-          }
-        }
-        // Por fim , preencher os que faltam ( caso falte algum )
-            q.enqueue(arvore.root);
-            while (!q.isEmpty()) {
-            BSTNode<Integer> cur = q.dequeue();
-                 if (cur != null ) {
-              if( cur.contagem_cobertura(map)==1 && cur.invisivel!=1)
-              {
-                preencher(cur,map);
-                solucao[i]=cur.getx();solucao[i+1]=cur.gety();
-                i++;
-                i++;
+                search_BFS--;
               }
-          q.enqueue(cur.getLeft());
-          q.enqueue(cur.getRight());
-        }
-      }
 
       if( contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true ) // Caso encontre solucao otima
       {
@@ -455,28 +420,8 @@ public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arv
         backup[1]=solucao[1];
       }
       flag++;
-        /*if(contar(solucao,vertices_existentes*2)==0)
-        {
-          otimizacao=1;
-          break;
-        }*/
-        //printar_solucao(solucao,vertices_existentes*2);
     }
-
-   for(int k=0;k<vertices_existentes*2;k++)
-    {
-      if(otima[k]>=0 && otima[k+1]>=0)
-      {
-      System.out.println("x:"+otima[k]+" y:"+otima[k+1]);
-      }
-      k++;
-    }
-    if(otimizacao==1)
-    {
-      System.out.println("Solucao nao otima");
-    }
-         printar_bool(boolean_otima);
-
+  Print_Otima(otima,otimizacao,boolean_otima);
 }
 
 
