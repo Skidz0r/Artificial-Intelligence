@@ -430,14 +430,14 @@ public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arv
         }
       }
 
-      if( contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true )
+      if( contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true ) // Caso encontre solucao otima
       {
         copy_array(map,boolean_otima,nretangulos);
         copy_int(solucao,otima);
         break;
       }
 
-      if( (contar(solucao,vertices_existentes*2)) < (contar(otima,vertices_existentes*2)) )
+      if( (contar(solucao,vertices_existentes*2)) < (contar(otima,vertices_existentes*2)) )  // Caso nao encontre solucao otima
       {
         if(contar(solucao,vertices_existentes*2)>=limite)
         {
