@@ -1,168 +1,146 @@
-// Greddy search
 import java.lang.*;
 import java.util.*;
 
-class Qnode {
-    int vert;
-    int vertkey;
-    int pos;                               // Heap modificada para identificar qual vertices corresponde
-
-    Qnode(int v, int key,int p) {
-  pos=p;
-	vert = v;
-	vertkey = key;
+class BSTree<T extends Comparable<? super T>> {
+   public BSTNode<T> root;
+   BSTree() {
+      root = null;
+   }
+   public BSTNode<T> getRoot() {return root;}
+   public void setRoot(BSTNode<T> r) {root = r;}
+   public boolean isEmpty() {
+      return root == null;
+   }
+   public void clear() {
+      root = null;
+   }
+   public int numberNodes() {
+      return numberNodes(root);
+   }
+   private int numberNodes(BSTNode<T> n) {
+      if (n == null) return 0;
+      return 1 + numberNodes(n.getLeft()) + numberNodes(n.getRight());
+   }
+   public boolean contains(T value) {
+      return contains(root, value);
+   }
+   private boolean contains(BSTNode<T> n, T value) {
+    // int lados=0;
+      if (n==null) return false;
+      if (value.compareTo(n.getValue()) < 0)
+         return contains(n.getLeft(), value);
+      if (value.compareTo(n.getValue()) >= 0)
+         return contains(n.getRight(), value);
+      return true;
+   }
+   public boolean insert(T value, int x, int y, int retangulo) {
+       root = insert(root, value, x, y, retangulo);
+       return true;
     }
-}
-
-class Heapmax {
-    private static int posinvalida = 0;
-    int sizeMax,size;
-    int pos;
-    Qnode[] a;
-    int[] pos_a;
-
-    Heapmax(int vec[], int n) {
-	a = new Qnode[n + 1];
-	pos_a = new int[n + 1];
-	sizeMax = n;
-	size = n;
-	for (int i = 1; i <= n; i++) {
-      pos=i;
-	    a[i] = new Qnode(i,vec[i],pos);
-	    pos_a[i] = i;
-	}
-
-	for (int i = n/2; i >= 1; i--)
-	    heapify(i);
+    int lados=0;
+    int flag_lados=0;
+    private BSTNode<T> insert(BSTNode<T> n, T value, int x, int y,int retangulo) {
+       int vec[] = { retangulo, 0, 0, };
+       if (n==null)
+          return new BSTNode<T>(value, null, null,x,y,vec,0);
+       else if (value.compareTo(n.getValue()) < 0)
+          n.setLeft(insert(n.getLeft(), value,x,y,retangulo));
+       else if (value.compareTo(n.getValue()) >= 0)
+          n.setRight(insert(n.getRight(), value,x,y,retangulo));
+       return n;
     }
-
-    boolean isEmpty() {
-	if (size == 0) return true;
-	return false;
-    }
-
-    int extractMax() {
-	int vertv = a[1].vert;
-	swap(1,size);
-	pos_a[vertv] = posinvalida;  // assinala vertv como removido
-	size--;
-	heapify(1);
-	return vertv;
-    }
-
-    void decreaseKey(int vertv, int newkey) {
-          int i = pos_a[vertv];
-          a[i].vertkey = newkey;
-
-          heapify(i);
+   public boolean remove(T value) {
+      if (!contains(value)) return false;
+      root = remove(root, value);
+      return true;
+   }
+   private BSTNode<T> remove(BSTNode<T> n, T value) {
+      if (value.compareTo(n.getValue()) < 0)
+         n.setLeft(remove(n.getLeft(), value));
+      else if (value.compareTo(n.getValue()) > 0)
+         n.setRight(remove(n.getRight(), value));
+      else if (n.getLeft() == null) // Nao tem filho esquerdo
+         n = n.getRight();
+      else if (n.getRight() == null) // Nao tem filho direito
+         n = n.getLeft();
+      else { // Dois fihos: ir buscar maximo do lado esquerdo
+         BSTNode<T> max = n.getLeft();
+         while (max.getRight() != null) max = max.getRight();
+         n.setValue(max.getValue()); // Substituir valor removido
+         // Apagar valor que foi para lugar do removido
+         n.setLeft(remove(n.getLeft(), max.getValue()));
       }
+      return n;
+   }
+   public int depth() {
+      return depth(root);
+   }
 
-
-    void increaseKey(int vertv, int newkey) {
-
-	int i = pos_a[vertv];
-	a[i].vertkey = newkey;
-
-	while (i > 1 && compare(i, parent(i)) > 0) {
-	    swap(i, parent(i));
-	    i = parent(i);
-	}
-    }
-
-
-    void insert(int vertv, int key)
+   private int depth(BSTNode<T> n) {
+      if (n == null) return -1;
+      return 1 + Math.max(depth(n.getLeft()), depth(n.getRight()));
+   }
+    public T minValue()
     {
-	if (sizeMax == size)
-	    new Error("Heap is full\n");
-
-	size++;
-	a[size].vert = vertv;
-	pos_a[vertv] = size;   // supondo 1 <= vertv <= n
-	increaseKey(vertv,key);   // aumenta a chave e corrige posicao se necessario
+	return minValue(root);
     }
-
-    void write_heap(){
-	System.out.printf("Max size: %d\n",sizeMax);
-	System.out.printf("Current size: %d\n",size);
-	System.out.printf("(Vert,Key,Pos)\n---------\n");
-	for(int i=1; i <= size; i++)
-	    System.out.printf("(%d,%d,%d)\n",a[i].vert,a[i].vertkey,a[i].pos);
-
-	System.out.printf("-------\n(Vert,PosVert)\n---------\n");
-
-	for(int i=1; i <= sizeMax; i++)
-	    if (pos_valida(pos_a[i]))
-		System.out.printf("(%d,%d)\n",i,pos_a[i]);
+    private T minValue(BSTNode<T> n)
+    {
+	if(n.getLeft()!=null)
+	    {
+		return minValue(n.getLeft());
+	    }
+	return n.getValue();
     }
-
-    private int parent(int i){
-	return i/2;
+    public T maxValue()
+    {
+	return maxValue(root);
     }
-    private int left(int i){
-	return 2*i;
-    }
-    private int right(int i){
-	return 2*i+1;
-    }
-
-    private int compare(int i, int j) {
-	if (a[i].vertkey < a[j].vertkey)
-	    return -1;
-	if (a[i].vertkey == a[j].vertkey)
-	    return 0;
-	return 1;
-    }
-
-    public void heapify(int i) {
-	int l, r, largest;
-
-	l = left(i);
-	if (l > size) l = i;
-
-	r = right(i);
-	if (r > size) r = i;
-
-	largest = i;
-	if (compare(l,largest) > 0)
-	    largest = l;
-	if (compare(r,largest) > 0)
-	    largest = r;
-
-	if (i != largest) {
-	    swap(i, largest);
-	    heapify(largest);
-	}
-
-    }
-
-    private void swap(int i, int j) {
-	Qnode aux;
-	pos_a[a[i].vert] = j;
-	pos_a[a[j].vert] = i;
-	aux = a[i];
-	a[i] = a[j];
-	a[j] = aux;
-    }
-
-    private boolean pos_valida(int i) {
-	return (i >= 1 && i <= size);
+    private T maxValue(BSTNode<T> n )
+    {
+	if(n.getRight()!=null)
+	    {
+		return maxValue(n.getRight());
+	    }
+	return n.getValue();
     }
 }
 
 
-public class guardas
+public class guardas_BFS
 {
-  public static int numero_vertices=0;
-  static int nretangulos;
-  static int posx=0;
-  static int[][] vertices=new int[10000][3];
+  public static int numero_retangulos;
+  public static int vertices_existentes=0;
+  public static void inserir(int x, int y, int retangulo, BSTree<Integer> arvore)
+  {
+    int flag=0;
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.root);
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         if(cur.getx()==x && cur.gety()==y)
+         {
+           flag=1;
+           cur.insert_cobertura(retangulo);
+           cur.setValue(cur.contagem_value());
+         }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
+    if(flag==0)
+    {
+    arvore.insert(1,x,y,retangulo);
+   }
+  }
 
-  public static int contagem(int i,int x, int y)     // Contar quantos vertices são iguais a x y
+  public static int contar_false(boolean[] map,int nretangulos)
   {
     int contagem=0;
-    for(int k=i+1;k<posx;k++)
+    for(int i=0;i<numero_retangulos;i++)
     {
-      if(vertices[k][0]==x && vertices[k][1]==y)
+      if(map[i]==false)
       {
         contagem++;
       }
@@ -170,9 +148,22 @@ public class guardas
     return contagem;
   }
 
-  public static boolean areAllTrue(boolean[] array)    // Saber se o array map está totalmente "TRUE"
+  public static int contar_true(boolean[] map,int nretangulos)
   {
-    for(int i=0;i<nretangulos;i++)
+    int contagem=0;
+    for(int i=0;i<numero_retangulos;i++)
+    {
+      if(map[i]==true)
+      {
+        contagem++;
+      }
+    }
+    return contagem;
+  }
+
+  public static boolean areAllTrue(boolean[] array,int nretangulos)    // Saber se o array map está totalmente "TRUE"
+  {
+    for(int i=0;i<numero_retangulos;i++)
     {
       if(array[i]==false)
       {
@@ -182,169 +173,355 @@ public class guardas
     return true;
   }
 
-  public static int contagem_ciclo(boolean[] array)         // Saber quantos FALSE o array ainda tem
+  public static void preencher(BSTNode<Integer> n,boolean[] map)
   {
-    int contagem=0;
-    for(int i=0;i<nretangulos;i++)
+    for(int i=0;i<=2;i++)
     {
-      if(array[i]==false)
+      if(n.vec[i]==0)
       {
-        contagem++;
+        map[0]=true;
       }
-    }
-    return contagem;
-  }
-
-  public static int contagem_vertices(int x, int y, boolean[] map)   // Saber se ao colocar o vigia no vertice x y quantos retangulos ira cobrir que estjeam FALSE
-  {
-    int contagem=0;
-    for(int k=0;k<posx;k++)
-    {
-      if(vertices[k][0]==x && vertices[k][1]==y && map[vertices[k][2]-1]==false)
-      {
-        contagem++;
-      }
-    }
-    return contagem;
-  }
-
-
-  public static void preencher(int x, int y, boolean[] map)   // Preencher o array map com true nos casos que o vertice cubra o retangulo
-  {
-    for(int k=0;k<posx;k++)
-    {
-      if(vertices[k][0]==x && vertices[k][1]==y)
-      {
-        map[vertices[k][2]-1]=true;
+      else{
+        map[n.vec[i]-1]=true;
       }
     }
   }
 
-  public static void atualizar(boolean[] map,Heapmax heap)
-  {
-    for(int i=1;i<=heap.size;i++)
-    {
-      int n=contagem_vertices(vertices[heap.a[i].pos][0],vertices[heap.a[i].pos][1],map);
-      if(( contagem_vertices(vertices[heap.a[i].pos][0],vertices[heap.a[i].pos][1],map) ) < heap.a[i].vertkey)
-      {
-          int v=heap.a[1].vertkey-n;
-          heap.decreaseKey(heap.a[i].pos,v);
-    }
-    heap.heapify(i);
 
-        //  System.out.print(" "+heap.a[i].vertkey+" ");
+  public static void remover(int x , int y, BSTree<Integer> arvore)
+  {
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.root);
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         if(cur.getx()==x && cur.gety()==y)
+         {
+           cur.invisivel=1;
+           break;
+         }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
+    }
   }
-      //System.out.println("fim");
-}
 
-public static void Greedy_Search(boolean[] map, Heapmax heap,int flag)
-{
-  while(areAllTrue(map)==false)
+  public static void colocar(int x , int y, BSTree<Integer> arvore)
   {
-    atualizar(map,heap);
-    int flag2=0;
-    int x=vertices[heap.a[1].pos][0];
-    int y=vertices[heap.a[1].pos][1];
-    if(heap.a[1].vertkey==2)
-    flag2=3;
-    if(heap.a[1].vertkey==1)
-    flag2=2;
-    if(heap.a[1].vertkey==0)
-    flag2=1;
-    if(flag2==3)
-    {
-          if(vertices[heap.a[1].pos][0]==x && vertices[heap.a[1].pos][1]==y && contagem_vertices(x,y,map)==3)
-          {
-            preencher(x,y,map);
-            flag=1;
-          }
+    MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+    q.enqueue(arvore.root);
+    while (!q.isEmpty()) {
+       BSTNode<Integer> cur = q.dequeue();
+       if (cur != null) {
+         if(cur.getx()==x && cur.gety()==y)
+         {
+           cur.invisivel=0;
+           break;
+         }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
+       }
     }
+  }
 
-    if(flag2==2)
+    public static void clear_map(boolean[] map,boolean[] c_map,int nretangulos)
     {
-          if(vertices[heap.a[1].pos][0]==x && vertices[heap.a[1].pos][1]==y && contagem_vertices(x,y,map)==2 )
-          {
-            preencher(x,y,map);
-            flag=1;
-          }
-    }
-
-    if(flag2==1)
-    {
-        for(int k=0;k<posx;k++)
+      for(int i=0;i<nretangulos;i++)
+      {
+        if(c_map[i]==false)
         {
-          if(vertices[k][0]==x && vertices[k][1]==y && map[vertices[k][2]-1]==false)
-          {
-            flag=1;
-            map[vertices[k][2]-1]=true;
-          }
+        map[i]=false;
+      }
+      else if(c_map[i]==true)
+      {
+        map[i]=true;
+      }
+    }
+  }
+
+    public static int pertence(int x, int y, int[] removidos)
+    {
+      for(int i=0;i<vertices_existentes*2;i++)
+      {
+        if(removidos[i]==x && removidos[i+1]==y && removidos[i]>=0 && removidos[i+1]>=0)
+        {
+          return 1;
+        }
+        i++;
+      }
+      return 0;
+    }
+
+    public static void array_fill(int[] array,int size,int k)
+    {
+      for(int i=0;i<size;i++)
+      {
+        array[i]=k;
       }
     }
 
-    if(flag==1)
+    public static void printar_solucao(int[] removidos,int size)
     {
-      System.out.println("x:"+x+" y:"+y);
-      flag=0;
-    }
-    heap.extractMax();
-  }
-}
-
-public static void reset()
-{
-  posx=0;
-  for(int i=0;i<numero_vertices;i++)
-  {
-    for(int k=0;k<3;k++)
-    {
-      vertices[i][k]=0;
-    }
-  }
-}
-
-  public static void main(String[] args)
-  {
-    Scanner in = new Scanner(System.in);
-    int instancias=in.nextInt();
-    int flag=0;
-    for(int l=1;l<=instancias;l++)
-    {
-      System.out.println("Retangulo "+l);
-     nretangulos=in.nextInt();
-     boolean[] map = new boolean[nretangulos];
-     Arrays.fill(map,true);
-     int nr=in.nextInt();
-     for(int p=0;p<nr;p++)
-     {
-       int x=in.nextInt();
-       map[x-1]=false;
-     }
-     //printar_boolean(map);
-      for(int k=1;k<=nretangulos;k++)
+      System.out.print("Solucao ");
+      for(int i=0;i<size;i++)
       {
-        int retangulo=in.nextInt();
-        int nvertices=in.nextInt();
-        numero_vertices+=nvertices;
-        for(int h=1;h<=nvertices;h++)
+        if(removidos[i]>=0 && removidos[i+1]>=0)
         {
-          int x=in.nextInt();
-          int y=in.nextInt();
-          vertices[posx][0]=x;
-          vertices[posx][1]=y;
-          vertices[posx][2]=retangulo;
-          posx++;
+        System.out.print(" x:"+removidos[i]+" y:"+removidos[i+1]);
+      }
+        i++;
+      }
+      System.out.println();
+    }
+
+    public static void copy_int(int[] solucao, int[] otima)
+    {
+      for(int i=0;i<vertices_existentes*2;i++)
+      {
+          otima[i]=solucao[i];
+      }
+    }
+
+    public static void copy_array(boolean[] map, boolean[] c_map,int nretangulos)
+    {
+      for(int i=0;i<nretangulos;i++)
+      {
+        if(map[i]==true)
+        {
+          c_map[i]=true;
+        }
+        else if(map[i]=false)
+        {
+          c_map[i]=false;
+        }
+      }
+    }
+
+    public static void printar_bool(boolean[] map)
+    {
+      for(int i=0;i<numero_retangulos;i++)
+      {
+        if(map[i]==true)
+        {
+          System.out.print(" True ");
+        }
+        else System.out.print(" False ");
+      }
+      System.out.println();
+    }
+
+    public static int contar(int[] array,int size)
+    {
+      int contagem=0;
+      for(int i=0;i<size;i++)
+      {
+        if(array[i]>=0 && array[i+1]>=0)
+        {
+          contagem++;
+        }
+        i++;
+      }
+      return contagem;
+    }
+
+
+public static void BFS_Search(boolean[] map, int nretangulos,BSTree<Integer> arvore)
+{
+  boolean[] c_map=new boolean[nretangulos];
+  copy_array(map,c_map,nretangulos);
+  double limite2=nretangulos-contar_true(c_map,nretangulos);
+  int limite=(int)Math.ceil(limite2/3);
+  int flag=0;
+  int[] backup=new int[2];
+  int[] solucao=new int[vertices_existentes*2];
+  int[] removidos=new int[vertices_existentes*2];
+  boolean[] boolean_otima=new boolean[nretangulos];
+  int[] otima=new int[vertices_existentes*2];
+  int otimizacao=0;
+  array_fill(removidos,vertices_existentes*2,-1);
+  array_fill(solucao,vertices_existentes*2,-1);
+  array_fill(otima,vertices_existentes*2,0);
+  int i=0;
+  int j=0;
+  int h=0;
+  int f=0;
+        while(! (contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true) )
+        {
+          clear_map(map,c_map,nretangulos);
+            i=0;
+            j=0;
+            if(flag==1)
+            {
+              remover(backup[0],backup[1],arvore);
+              removidos[h]=backup[0];
+              removidos[h+1]=backup[1];
+              h++;h++;
+            }
+          if(flag>=2)
+           {
+                  if(flag>=2)colocar(backup[0],backup[1],arvore);
+                  while(pertence(solucao[j],solucao[j+1],removidos)==1)
+                  {
+                    j++;
+                    j++;
+                  }
+                  if(h==(vertices_existentes*2)-2)
+                  {otimizacao=1;break;}
+                  removidos[h]=solucao[j];
+                  removidos[h+1]=solucao[j+1];
+                  if(removidos[h]==-1 && removidos[h+1]==-1)
+                  {
+                    remover(removidos[f],removidos[f+1],arvore);
+                    f++;f++;
+;                  }
+                  backup[0]=solucao[j];
+                  backup[1]=solucao[j+1];
+                  //System.out.println("removidos x:"+removidos[f]+" y:"+removidos[f+1]);
+                  remover(solucao[j],solucao[j+1],arvore);
+                  h++;h++;
+                  array_fill(solucao,vertices_existentes*2,-1);
+           }
+              MyQueue<BSTNode<Integer>> q = new LinkedListQueue<BSTNode<Integer>>();
+                q.enqueue(arvore.root);
+                while (!q.isEmpty()) {
+                   BSTNode<Integer> cur = q.dequeue();
+                 if (cur != null ) {
+              if( cur.contagem_cobertura(map)==3 && cur.invisivel!=1)
+                     {
+                       preencher(cur,map);
+                       solucao[i]=cur.getx();solucao[i+1]=cur.gety();
+                       i++;
+                       i++;
+                     }
+                     q.enqueue(cur.getLeft());
+                     q.enqueue(cur.getRight());
+                   }
+                }
+              // Verificar na arvore todos os vertices que vigiem 2 retangulos & escolher vertices que vigiem 1 caso o nº de retnagulos que falte preencher n seja n divisivel por 2
+              q.enqueue(arvore.root);
+              while (!q.isEmpty()) {
+              BSTNode<Integer> cur = q.dequeue();
+                 if (cur != null ) {
+              if( cur.contagem_cobertura(map)==2 && cur.invisivel!=1)
+              {
+                  preencher(cur,map);
+                  solucao[i]=cur.getx();solucao[i+1]=cur.gety();
+                  i++;
+                  i++;
+                }
+                q.enqueue(cur.getLeft());
+                q.enqueue(cur.getRight());
+          }
+        }
+        // Por fim , preencher os que faltam ( caso falte algum )
+            q.enqueue(arvore.root);
+            while (!q.isEmpty()) {
+            BSTNode<Integer> cur = q.dequeue();
+                 if (cur != null ) {
+              if( cur.contagem_cobertura(map)==1 && cur.invisivel!=1)
+              {
+                preencher(cur,map);
+                solucao[i]=cur.getx();solucao[i+1]=cur.gety();
+                i++;
+                i++;
+              }
+          q.enqueue(cur.getLeft());
+          q.enqueue(cur.getRight());
         }
       }
 
-    int[] contagem=new int[posx+1];
-    for(int i=0;i<posx;i++)
-    {
-        contagem[i]=contagem(i,vertices[i][0],vertices[i][1]);
+      if( contar(solucao,vertices_existentes*2)==limite && areAllTrue(map,numero_retangulos)==true )
+      {
+        copy_array(map,boolean_otima,nretangulos);
+        copy_int(solucao,otima);
+        break;
+      }
+
+      if( (contar(solucao,vertices_existentes*2)) < (contar(otima,vertices_existentes*2)) )
+      {
+        if(contar(solucao,vertices_existentes*2)>=limite)
+        {
+          if(areAllTrue(map,numero_retangulos)==true )
+          {
+            copy_array(map,boolean_otima,nretangulos);
+          copy_int(solucao,otima);
+          }
+        }
+      }
+
+      if(flag==0)
+      {
+        backup[0]=solucao[0];
+        backup[1]=solucao[1];
+      }
+      flag++;
+        /*if(contar(solucao,vertices_existentes*2)==0)
+        {
+          otimizacao=1;
+          break;
+        }*/
+        //printar_solucao(solucao,vertices_existentes*2);
     }
 
-    Heapmax heap=new Heapmax(contagem,posx);
-    Greedy_Search(map,heap,flag);
-    reset();
+   for(int k=0;k<vertices_existentes*2;k++)
+    {
+      if(otima[k]>=0 && otima[k+1]>=0)
+      {
+      System.out.println("x:"+otima[k]+" y:"+otima[k+1]);
+      }
+      k++;
     }
+    if(otimizacao==1)
+    {
+      System.out.println("Solucao nao otima");
+    }
+         printar_bool(boolean_otima);
+
+}
+
+
+  public static void main(String[] args)
+  {
+     int flag=0;
+     int nretangulos;
+     Scanner in=new Scanner(System.in);
+     BSTree<Integer> arvore = new BSTree<>();
+     int instancias=in.nextInt();
+      for(int l=1;l<=instancias;l++)
+      {
+        nretangulos=in.nextInt();
+        int nr=in.nextInt();
+      boolean[] map = new boolean[nretangulos];
+       Arrays.fill(map,true);
+        numero_retangulos=nretangulos;
+        for(int k=0;k<nr;k++)
+        {
+          int x=in.nextInt();
+          map[x-1]=false;
+        }
+        for(int i=1;i<=nretangulos;i++)
+        {
+          int retangulo=in.nextInt();
+          int nvertices=in.nextInt();
+          vertices_existentes+=nvertices;
+          for(int h=1;h<=nvertices;h++)
+          {
+            int x=in.nextInt();
+            int y=in.nextInt();
+            if(flag==0)
+            {
+              flag=1;
+              arvore.insert(0,x,y,retangulo);
+            }
+            else if(flag==1)
+            {
+              inserir(x,y,retangulo,arvore);
+            }
+          }
+       }
+       System.out.println("Retangulo: "+l);
+       BFS_Search(map,nretangulos,arvore);
+       arvore.clear();
+        }
   }
 }
